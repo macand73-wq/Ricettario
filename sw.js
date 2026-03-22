@@ -1,4 +1,4 @@
-const CACHE = 'ricettario-v2';
+const CACHE = 'ricettario-v3';
 const ASSETS = ['/ricettario/', '/ricettario/index.html', '/ricettario/manifest.json', '/ricettario/icon-192.png', '/ricettario/icon-512.png'];
 
 self.addEventListener('install', e => {
