@@ -1,5 +1,5 @@
-const CACHE = 'ricettario-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'ricettario-v2';
+const ASSETS = ['/ricettario/', '/ricettario/index.html', '/ricettario/manifest.json', '/ricettario/icon-192.png', '/ricettario/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -23,6 +23,6 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE).then(c => c.put(e.request, clone));
       }
       return res;
-    }).catch(() => caches.match('/index.html')))
+    }).catch(() => caches.match('/ricettario/index.html')))
   );
 });
