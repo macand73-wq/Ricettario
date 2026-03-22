@@ -810,13 +810,12 @@ function renderFuori(){
   s.innerHTML = html;
 }
 
-// Service Worker — pulizia vecchie versioni e registrazione corretta
+// Rimuovi TUTTI i service worker — causano 404 su GitHub Pages con subpath
 if('serviceWorker' in navigator){
   navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => { if(!reg.scope.includes('/ricettario/')) reg.unregister(); });
+    regs.forEach(reg => reg.unregister());
   });
-  caches.keys().then(keys => { keys.forEach(k => { if(k !== 'ricettario-v3') caches.delete(k); }); });
-  navigator.serviceWorker.register('/ricettario/sw.js', {scope:'/ricettario/'}).catch(()=>{});
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 
 // Init
