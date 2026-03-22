@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1A3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ricettario">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Il Mio Ricettario</title>
+<style>
+:root {
+  --navy:#1A3A5C; --navy-bg:#D6E4F0;
+  --green:#1E8449; --green-bg:#D5F5E3;
+  --amber:#854F0B; --amber-bg:#FEF9E7;
+  --purple:#3C3489; --purple-bg:#EEEDFE;
+  --teal:#0F6E56; --teal-bg:#E1F5EE;
+  --coral:#993C1D; --coral-bg:#FAECE7;
+  --hiit:#185FA5; --hiit-bg:#EBF5FB;
+  --gray:#555; --light:#F8F9FA;
+  --radius:12px; --radius-sm:8px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f2f5;color:#1a1a1a;min-height:100vh;padding-bottom:calc(68px + var(--safe-bottom))}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:100;background:#1A3A5C;color:#fff;padding:14px 16px 12px;display:flex;align-items:center;gap:12px}
+.topbar-back{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px;line-height:1}
+.topbar-title{font-size:17px;font-weight:600;flex:1}
+.topbar-sub{font-size:11px;opacity:.75;margin-top:2px}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid #e0e0e0;display:flex;padding-bottom:var(--safe-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;border:none;background:none;font-size:10px;color:#888;transition:color .15s}
+.nav-item.active{color:#1A3A5C}
+.nav-item svg{width:22px;height:22px;fill:currentColor}
+
+/* SCREENS */
+.screen{display:none;padding:0}
+.screen.active{display:block}
+
+/* HOME */
+.home-header{background:#1A3A5C;color:#fff;padding:20px 16px 24px}
+.home-header h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.home-header p{font-size:13px;opacity:.8}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px}
+.stat-card{background:#fff;border-radius:var(--radius-sm);padding:12px;text-align:center;border:1px solid #eee}
+.stat-num{font-size:24px;font-weight:700;color:#1A3A5C}
+.stat-label{font-size:11px;color:#888;margin-top:2px}
+.section-title{font-size:13px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;padding:16px 16px 8px}
+.meal-nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px}
+.meal-nav-btn{border-radius:var(--radius);padding:16px 14px;border:none;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:4px}
+.meal-nav-btn .meal-time{font-size:11px;opacity:.7;font-weight:500}
+.meal-nav-btn .meal-name{font-size:15px;font-weight:600}
+.meal-nav-btn .meal-count{font-size:11px;opacity:.6}
+.day-chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 16px;scrollbar-width:none}
+.day-chips::-webkit-scrollbar{display:none}
+.day-chip{flex-shrink:0;border-radius:20px;padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555;white-space:nowrap}
+.day-chip.active{background:#1A3A5C;color:#fff;border-color:#1A3A5C}
+.day-chip.hiit{border-color:#185FA5;color:#185FA5}
+.day-chip.hiit.active{background:#185FA5;color:#fff}
+
+/* RECIPE LIST */
+.recipe-list{padding:8px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.recipe-card{background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid #eee;cursor:pointer;transition:transform .1s}
+.recipe-card:active{transform:scale(.98)}
+.recipe-card-header{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.recipe-card-icon{width:40px;height:40px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.recipe-card-info{flex:1;min-width:0}
+.recipe-card-name{font-size:14px;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recipe-card-meta{font-size:11px;color:#888;margin-top:2px}
+.recipe-card-arrow{color:#ccc;font-size:16px}
+.alt-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:6px}
+
+/* RECIPE DETAIL */
+.recipe-detail{padding:16px}
+.recipe-hero{border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.recipe-hero-name{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px}
+.recipe-hero-badges{display:flex;gap:6px;flex-wrap:wrap}
+.recipe-hero-badge{background:rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:500;padding:3px 9px;border-radius:10px}
+.detail-section{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid #eee}
+.detail-section-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.ing-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.ing-item{font-size:14px;color:#333;padding:6px 0;border-bottom:1px solid #f5f5f5;display:flex;align-items:flex-start;gap:8px}
+.ing-item:last-child{border-bottom:none;padding-bottom:0}
+.ing-bullet{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.step-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.step-item{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.step-text{font-size:14px;color:#333;line-height:1.5;padding-top:2px}
+.tip-box{background:#FEF9E7;border-left:3px solid #854F0B;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px}
+.tip-label{font-size:10px;font-weight:700;color:#854F0B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.tip-text{font-size:13px;color:#4A2800;line-height:1.5}
+
+/* PASTO FILTER TABS */
+.filter-tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none}
+.filter-tabs::-webkit-scrollbar{display:none}
+.filter-tab{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555}
+.filter-tab.active{border-width:2px}
+
+/* FUORI CASA */
+.fuori-card{background:#fff;border-radius:var(--radius);overflow:hidden;margin:0 16px 12px;border:1px solid #eee}
+.fuori-header{padding:12px 16px;color:#fff;font-size:15px;font-weight:600}
+.fuori-row{padding:10px 16px;border-bottom:1px solid #f5f5f5;display:flex;gap:10px}
+.fuori-row:last-child{border-bottom:none}
+.fuori-label{font-size:12px;font-weight:600;min-width:90px;flex-shrink:0;margin-top:1px}
+.fuori-text{font-size:13px;color:#444;line-height:1.5;flex:1}
+.fuori-kcal{font-size:11px;font-weight:600;color:#888;margin-top:3px}
+
+/* FAVORITES */
+.fav-btn{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.3);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.fav-empty{padding:40px 20px;text-align:center;color:#aaa}
+.fav-empty-icon{font-size:48px;margin-bottom:12px}
+.fav-empty-text{font-size:14px}
+
+/* HIIT BANNER */
+.hiit-banner{background:#EBF5FB;border:1px solid #85B7EB;border-radius:var(--radius-sm);padding:10px 14px;margin:0 16px 12px;font-size:13px;color:#0C447C;line-height:1.5}
+.hiit-banner strong{font-weight:600}
+
+/* MEAL SECTION HEADERS */
+.meal-section-header{padding:6px 16px 2px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#fff;margin:8px 0 0}
+
+/* SEARCH */
+.search-wrap{padding:12px 16px 4px}
+.search-input{width:100%;border:1.5px solid #e0e0e0;border-radius:var(--radius-sm);padding:10px 14px;font-size:15px;background:#fff;outline:none;color:#1a1a1a}
+.search-input:focus{border-color:#1A3A5C}
+.no-results{padding:32px 20px;text-align:center;color:#aaa;font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar" id="topbar">
+  <button class="topbar-back" id="btn-back" style="display:none" onclick="goBack()">&#8592;</button>
+  <div>
+    <div class="topbar-title" id="topbar-title">Il Mio Ricettario</div>
+    <div class="topbar-sub" id="topbar-sub">Dieta Mediterranea · Senza glutine · Senza lattosio</div>
+  </div>
+</div>
+
+<!-- SCREENS -->
+<div class="screen active" id="screen-home"></div>
+<div class="screen" id="screen-list"></div>
+<div class="screen" id="screen-detail"></div>
+<div class="screen" id="screen-search"></div>
+<div class="screen" id="screen-fav"></div>
+<div class="screen" id="screen-fuori"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="showScreen('home')">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    Home
+  </button>
+  <button class="nav-item" id="nav-list" onclick="showScreen('list')">
+    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+    Ricette
+  </button>
+  <button class="nav-item" id="nav-search" onclick="showScreen('search')">
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    Cerca
+  </button>
+  <button class="nav-item" id="nav-fav" onclick="showScreen('fav')">
+    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    Preferiti
+  </button>
+  <button class="nav-item" id="nav-fuori" onclick="showScreen('fuori')">
+    <svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
+    Fuori
+  </button>
+</nav>
+
+<script>
+const MEALS = [
+  { id:"col", icon:"☀️", label:"Colazione", time:"07:00", color:"#854F0B", bg:"#FEF9E7" },
+  { id:"sp1", icon:"🍎", label:"Spuntino mattino", time:"10:30", color:"#1E8449", bg:"#D5F5E3" },
+  { id:"pra", icon:"🍽️", label:"Pranzo", time:"13:00", color:"#1A3A5C", bg:"#D6E4F0" },
+  { id:"sp2", icon:"🍵", label:"Spuntino pomeriggio", time:"17:00", color:"#0F6E56", bg:"#E1F5EE" },
+  { id:"cen", icon:"🌙", label:"Cena", time:"19:30", color:"#3C3489", bg:"#EEEDFE" },
+];
+
+const DAYS = [
+  { id:"lun", label:"Lunedì", short:"Lun", hiit:false },
+  { id:"mar", label:"Martedì", short:"Mar 💪", hiit:true },
+  { id:"mer", label:"Mercoledì", short:"Mer", hiit:false },
+  { id:"gio", label:"Giovedì", short:"Gio 💪", hiit:true },
+  { id:"ven", label:"Venerdì", short:"Ven", hiit:false },
+  { id:"sab", label:"Sabato", short:"Sab", hiit:false },
+  { id:"dom", label:"Domenica", short:"Dom", hiit:false },
+];
+
+const ALT_LABELS = ["Ricetta A", "Ricetta B", "Ricetta C"];
+
+const RECIPES = {
+  col: {
+    lun:[
+      { name:"Smoothie antiossidante con semi di lino", kcal:310, prep:"5 min", tag:"Anti-infiammatoria",
+        ing:["200 ml latte di mandorla senza zuccheri","100 g mirtilli (freschi o surgelati)","1 banana media (120 g)","1 cucchiaio semi di lino macinati (10 g)","1 cm zenzero fresco grattugiato","Ghiaccio (facoltativo)"],
+        steps:["Versare il latte di mandorla nel frullatore.","Aggiungere i mirtilli, la banana a pezzi e lo zenzero.","Unire i semi di lino macinati.","Frullare 60 secondi fino a consistenza vellutata.","Servire immediatamente."],
+        tip:"I semi di lino macinati si assorbono meglio. Macinali domenica e conserva in frigo."},
+      { name:"Avena fredda ai frutti rossi (overnight oats)", kcal:295, prep:"5 min + notte", tag:"Classica",
+        ing:["50 g fiocchi avena s.g.","150 ml latte di mandorla","100 g frutti rossi misti","1 cucchiaino miele","20 g noci tritate","Pizzico di cannella"],
+        steps:["La sera prima: mescolare avena e latte in un barattolo.","Aggiungere miele e cannella.","Coprire e tenere in frigo tutta la notte.","Al mattino aggiungere frutti rossi e noci.","Consumare freddo direttamente dal barattolo."],
+        tip:"Prepara 2-3 barattoli domenica sera — colazione pronta per tutta la settimana."},
+      { name:"Uova strapazzate al curcuma con pomodorini", kcal:320, prep:"8 min", tag:"Proteica",
+        ing:["2 uova grandi","50 g pomodorini ciliegino","Pizzico di curcuma + pepe nero","1 cucchiaino olio EVO","Sale marino q.b.","Erba cipollina"],
+        steps:["Scaldare l'olio in padella antiaderente.","Cuocere i pomodorini tagliati a metà per 2 min.","Sbattere le uova con curcuma, pepe nero e sale.","Versare sulle verdure e mescolare lentamente.","Togliere dal fuoco quando ancora morbide.","Spolverare con erba cipollina."],
+        tip:"La curcuma DEVE essere abbinata al pepe nero — aumenta l'assorbimento del 2000%."},
+    ],
+    mar:[
+      { name:"Uova strapazzate con avocado e pane saraceno", kcal:420, prep:"10 min", tag:"HIIT — rinforzata",
+        ing:["3 uova (2 intere + 1 albume)","½ avocado maturo (80 g)","1 fetta pane di grano saraceno (35 g)","Pomodorini q.b.","Sale, pepe, limone","1 cucchiaino olio EVO"],
+        steps:["Tostare il pane di grano saraceno.","Strapazzare le uova in padella con olio a fiamma dolce.","Schiacciare l'avocado con limone e sale.","Spalmare l'avocado sul pane tostato.","Disporre le uova accanto con i pomodorini."],
+        tip:"3 uova nei giorni HIIT — non scendere sotto per il recupero muscolare."},
+      { name:"Salmone affumicato su pane saraceno", kcal:380, prep:"5 min", tag:"Omega-3 al mattino",
+        ing:["80 g salmone affumicato","1 fetta pane di grano saraceno (35 g)","½ cetriolo a rondelle","1 cucchiaino capperi","Succo di ½ limone","Aneto fresco o secco"],
+        steps:["Tostare il pane di grano saraceno.","Disporre il salmone sul pane.","Aggiungere cetriolo, capperi.","Spruzzare con limone.","Spolverare con aneto."],
+        tip:"Il salmone affumicato supporta il recupero muscolare post-HIIT grazie agli omega-3."},
+      { name:"Frittata al forno con verdure e curcuma", kcal:350, prep:"15 min", tag:"Senza padella",
+        ing:["3 uova grandi","50 g spinaci freschi","30 g pomodorini","Curcuma + pepe nero","Sale, olio EVO","Erbe aromatiche"],
+        steps:["Preriscaldare il forno a 180°C.","Ungere uno stampo piccolo da forno.","Sbattere le uova con curcuma, pepe, sale.","Aggiungere spinaci tritati e pomodorini tagliati.","Versare nello stampo e infornare 12-14 min."],
+        tip:"Si prepara domenica sera e si mangia fredda in settimana. Dura 2 giorni in frigo."},
+    ],
+    mer:[
+      { name:"Fiocchi di avena con frutti rossi e miele", kcal:285, prep:"5 min", tag:"Anti-infiammatoria",
+        ing:["50 g fiocchi avena s.g.","150 ml latte di mandorla caldo","100 g frutti rossi misti","1 cucchiaino miele","20 g noci tritate","Pizzico di cannella"],
+        steps:["Scaldare il latte di mandorla.","Versare sull'avena e mescolare.","Attendere 3 minuti.","Aggiungere cannella e miele.","Completare con frutti rossi e noci."],
+        tip:"La cannella abbassa l'indice glicemico del pasto — aggiungila sempre all'avena."},
+      { name:"Smoothie verde con zenzero e semi", kcal:270, prep:"5 min", tag:"Detox mattutino",
+        ing:["200 ml latte di mandorla","1 banana","30 g spinaci freschi","1 cm zenzero fresco","1 cucchiaio semi di zucca (10 g)","1 cucchiaino miele"],
+        steps:["Inserire tutti gli ingredienti nel frullatore.","Iniziare a bassa velocità poi aumentare.","Frullare 90 secondi.","Se troppo denso aggiungere un goccio d'acqua.","Consumare subito."],
+        tip:"Gli spinaci nello smoothie apportano ferro e magnesio senza alterare il sapore."},
+      { name:"Avena salata con uova in camicia", kcal:310, prep:"10 min", tag:"Proteica e saziante",
+        ing:["50 g fiocchi avena s.g.","2 uova grandi","150 ml brodo vegetale","20 g pomodorini","Sale, pepe, erbe","1 cucchiaino olio EVO"],
+        steps:["Cuocere i fiocchi nel brodo vegetale per 3 min.","Cuocere le uova in camicia 3 min.","Disporre l'avena salata nella ciotola.","Adagiare le uova sopra.","Aggiungere pomodorini e olio a crudo."],
+        tip:"L'avena salata sazia moltissimo e regola la glicemia per tutta la mattina."},
+    ],
+    gio:[
+      { name:"Uova e mirtilli con pane saraceno", kcal:400, prep:"10 min", tag:"HIIT rinforzata",
+        ing:["2 uova grandi","80 g mirtilli freschi","1 fetta pane di grano saraceno (35 g)","1 cucchiaio semi di lino macinati","1 cucchiaino olio EVO","Curcuma, sale, pepe"],
+        steps:["Tostare il pane di grano saraceno.","Strapazzare le uova con curcuma e pepe.","Disporre le uova sul pane tostato.","Servire i mirtilli a parte in una ciotolina.","Cospargere con i semi di lino."],
+        tip:"I mirtilli potenziamo le proprietà anti-infiammatorie del salmone a pranzo."},
+      { name:"Yogurt di cocco con granola senza glutine", kcal:360, prep:"3 min", tag:"Velocissima",
+        ing:["150 g yogurt di cocco naturale","40 g granola certificata s.g.","80 g mirtilli","1 cucchiaino miele","10 g semi di zucca"],
+        steps:["Versare lo yogurt di cocco in una ciotola.","Aggiungere la granola.","Disporre i mirtilli sopra.","Finire con miele e semi di zucca.","Consumare subito prima che la granola si ammorbidisca."],
+        tip:"Lo yogurt di cocco è ricco di grassi buoni — energia rapida per il HIIT."},
+      { name:"Pancake di grano saraceno con frutti rossi", kcal:390, prep:"15 min", tag:"Weekend feel",
+        ing:["80 g farina di grano saraceno","1 uovo","150 ml latte di mandorla","1 cucchiaino lievito s.g.","100 g frutti rossi","1 cucchiaino miele","Olio EVO spray"],
+        steps:["Mescolare farina, uovo, latte e lievito fino a pastella liscia.","Scaldare padella antiaderente con spray di olio.","Versare mestoli di pastella e cuocere 2 min per lato.","Impilare i pancake.","Servire con frutti rossi e miele."],
+        tip:"Farina di grano saraceno: IG basso — energy release graduale per il HIIT."},
+    ],
+    ven:[
+      { name:"Smoothie con semi di zucca", kcal:290, prep:"5 min", tag:"Fine settimana",
+        ing:["200 ml latte di mandorla","100 g frutti rossi misti","½ banana (60 g)","10 g semi di zucca","1 cm zenzero","Cubetti di ghiaccio"],
+        steps:["Inserire tutti gli ingredienti nel frullatore.","Aggiungere il ghiaccio.","Frullare 60-90 secondi.","Servire in un bicchiere alto."],
+        tip:"I semi di zucca sono ricchi di zinco — supportano testosterone e sistema immunitario."},
+      { name:"Uova in padella con spinaci e curcuma", kcal:295, prep:"8 min", tag:"Semplicissima",
+        ing:["2 uova grandi","80 g spinaci freschi","Curcuma + pepe nero","Aglio","1 cucchiaino olio EVO","Sale marino"],
+        steps:["Scaldare l'olio con l'aglio in padella.","Aggiungere gli spinaci e cuocere 2-3 min.","Creare due spazi e rompere le uova.","Coprire con coperchio e cuocere 3 min.","Spolverare con curcuma e pepe nero."],
+        tip:"Gli spinaci aumentano l'assorbimento del ferro dell'uovo grazie alla vitamina C."},
+      { name:"Avena con banana caramellata e noci", kcal:310, prep:"10 min", tag:"Comfort food sano",
+        ing:["50 g fiocchi avena s.g.","1 banana (120 g)","20 g noci","150 ml latte di mandorla","1 cucchiaino miele","Pizzico di cannella"],
+        steps:["Cuocere i fiocchi nel latte di mandorla a fuoco basso 3-4 min.","Cuocere la banana a rondelle in padella senza grassi 2 min.","Versare l'avena nella ciotola.","Disporre le rondelle di banana caramellata sopra.","Aggiungere noci, miele e cannella."],
+        tip:"La banana cotta riduce il desiderio di dolci per tutta la mattina."},
+    ],
+    sab:[
+      { name:"Uova strapazzate con pane di riso e frutta", kcal:300, prep:"8 min", tag:"Classica del weekend",
+        ing:["2 uova grandi","1 fetta pane di riso (35 g)","1 frutto fresco di stagione","1 cucchiaino olio EVO","Sale, pepe, erbe aromatiche"],
+        steps:["Tostare il pane di riso.","Strapazzare le uova a fiamma dolce con olio.","Insaporire con sale, pepe ed erbe.","Disporre sul pane tostato.","Servire con il frutto a parte."],
+        tip:"Il sabato puoi aggiungere olive o capperi per un tocco in più."},
+      { name:"Yogurt di cocco con fiocchi di riso e frutta", kcal:280, prep:"3 min", tag:"Zero cottura",
+        ing:["150 g yogurt di cocco","40 g fiocchi di riso","1 frutto fresco","10 g mandorle a lamelle","1 cucchiaino miele"],
+        steps:["Versare lo yogurt di cocco nella ciotola.","Aggiungere i fiocchi di riso.","Tagliare il frutto a pezzi e distribuire sopra.","Finire con mandorle a lamelle e miele.","Consumare subito."],
+        tip:"Fiocchi di riso ≠ fiocchi di avena — controlla l'etichetta, devono essere riso puro."},
+      { name:"Frittata di albumi con verdure", kcal:250, prep:"12 min", tag:"Light proteica",
+        ing:["4 albumi + 1 tuorlo","80 g verdure miste","Sale, pepe, origano","1 cucchiaino olio EVO","Erba cipollina"],
+        steps:["Sbattere albumi e tuorlo con sale e pepe.","Scaldare l'olio e cuocere le verdure 3-4 min.","Versare le uova sulle verdure.","Coprire a fiamma bassa 4-5 min.","Piegare a metà e servire."],
+        tip:"Più albumi = meno calorie mantenendo le proteine — ottima nelle mattinate senza HIIT."},
+    ],
+    dom:[
+      { name:"Avena con frutti rossi e miele (domenica)", kcal:295, prep:"5 min", tag:"Domenica mattina",
+        ing:["50 g fiocchi avena s.g.","150 ml latte di mandorla caldo","100 g frutti rossi","1 cucchiaino miele","20 g noci","Cannella a piacere"],
+        steps:["Scaldare il latte di mandorla.","Versare sull'avena e attendere 3-4 min.","Aggiungere miele e cannella.","Completare con frutti rossi e noci.","Gustare con calma — la domenica non si corre."],
+        tip:"Domenica il meal prep inizia alle 10:00 — mangia alle 8:00 e hai tutto il tempo."},
+      { name:"Smoothie bowl con topping croccante", kcal:330, prep:"8 min", tag:"Domenica speciale",
+        ing:["200 ml latte di mandorla","100 g mirtilli","1 banana","30 g fiocchi avena s.g. (topping)","10 g semi di zucca","1 cucchiaino miele"],
+        steps:["Frullare latte, mirtilli e banana fino a uno smoothie denso.","Versare in una ciotola larga.","Distribuire i fiocchi di avena come topping.","Aggiungere semi di zucca e miele a filo.","Mangiare con cucchiaio."],
+        tip:"La smoothie bowl sazia di più dello smoothie bevuto — la masticazione attiva la sazietà."},
+      { name:"Pancakes saraceno al salmone (brunch)", kcal:410, prep:"20 min", tag:"Brunch proteico",
+        ing:["80 g farina grano saraceno","1 uovo","130 ml latte mandorla","60 g salmone affumicato","Capperi, aneto, limone","Olio EVO spray"],
+        steps:["Preparare la pastella: farina + uovo + latte + sale.","Cuocere i pancake 2 min per lato.","Impilare 2-3 pancake nel piatto.","Disporre il salmone con capperi e aneto.","Finire con limone e pepe nero."],
+        tip:"Questo brunch domenicale ti dà energia per le 2 ore di meal prep che seguono."},
+    ],
+  },
+  sp1:{
+    lun:[
+      {name:"Noci e cioccolato 85%",kcal:155,prep:"1 min",tag:"Anti-cortisolo",ing:["4 noci sgusciate (20 g)","1 quadratino cioccolato fondente 85% (10 g)"],steps:["Pesare esattamente 20g di noci (4 noci).","Abbinare al quadratino di cioccolato.","Consumare lentamente masticando bene."],tip:"Il cioccolato 85% riduce il cortisolo — perfetto nelle giornate stressanti."},
+      {name:"Mela con mandorle",kcal:165,prep:"1 min",tag:"Classico",ing:["1 mela media (150 g)","14 mandorle (20 g)"],steps:["Lavare e tagliare la mela a spicchi.","Abbinare alle mandorle.","Consumare lentamente."],tip:"Fibra + grassi buoni abbassano l'indice glicemico del pranzo."},
+      {name:"Hummus con bastoncini di verdure",kcal:175,prep:"2 min",tag:"Proteico",ing:["80 g hummus di ceci (dal meal prep)","2 carote a bastoncini","2 coste sedano a bastoncini"],steps:["Estrarre l'hummus dal frigo.","Tagliare le verdure.","Intingere e consumare lentamente."],tip:"Proteico e saziante — arrivi a pranzo senza fame eccessiva."},
+    ],
+    mar:[
+      {name:"Hummus con bastoncini e verdure",kcal:175,prep:"2 min",tag:"Pre-HIIT proteico",ing:["80 g hummus di ceci","2 carote a bastoncini","2 coste sedano"],steps:["Disporre l'hummus nella ciotola.","Affiancare i bastoncini.","Consumare entro le 11:00 — lascia 90 min prima del HIIT."],tip:"Proteine + fibre evitano il calo glicemico durante il HIIT."},
+      {name:"Uovo sodo con frutto piccolo",kcal:145,prep:"1 min",tag:"Velocissimo",ing:["1 uovo sodo (dal meal prep)","1 frutto piccolo"],steps:["Sbucciare l'uovo sodo già pronto.","Abbinare al frutto.","Consumare."],tip:"L'uovo sodo è il più pratico — 8 preparati domenica coprono tutta la settimana."},
+      {name:"Banana e mandorle",kcal:200,prep:"1 min",tag:"Energia pre-HIIT",ing:["1 banana media (120 g)","14 mandorle (20 g)"],steps:["Sbucciare la banana.","Abbinare alle mandorle.","Consumare almeno 90 min prima del HIIT."],tip:"Potassio della banana = meno crampi durante l'allenamento."},
+    ],
+    mer:[
+      {name:"Frutto con mandorle",kcal:155,prep:"1 min",tag:"Semplicissimo",ing:["1 pera o mela (150 g)","14 mandorle (20 g)"],steps:["Lavare il frutto.","Abbinare alle mandorle.","Masticare lentamente."],tip:"Mercoledì riposo dal HIIT — spuntino leggero per il deficit calorico."},
+      {name:"Tisana allo zenzero con noci",kcal:140,prep:"5 min",tag:"Termogenico",ing:["250 ml acqua calda","Zenzero fresco o bustina","4 noci (20 g)","Succo ½ limone"],steps:["Preparare la tisana allo zenzero.","Aggiungere il limone.","Abbinare le noci.","Sorseggiare lentamente."],tip:"Lo zenzero aumenta leggermente il metabolismo per 2-3 ore."},
+      {name:"Cioccolato 85% con pistacchi",kcal:170,prep:"1 min",tag:"Antiossidante",ing:["1-2 quadratini cioccolato 85% (15 g)","15 pistacchi non salati (15 g)"],steps:["Pesare il cioccolato.","Abbinare ai pistacchi.","Consumare lentamente."],tip:"I pistacchi hanno più proteine delle altre noci — ottima alternativa."},
+    ],
+    gio:[
+      {name:"Banana con mandorle",kcal:200,prep:"1 min",tag:"Pre-HIIT",ing:["1 banana (120 g)","14 mandorle (20 g)"],steps:["Sbucciare la banana.","Abbinare alle mandorle.","Consumare 90 min prima del HIIT."],tip:"Stessa routine del martedì — consistenza nei giorni HIIT."},
+      {name:"Uovo sodo e kiwi",kcal:140,prep:"1 min",tag:"Vitamina C + proteine",ing:["1 uovo sodo (dal meal prep)","1-2 kiwi"],steps:["Sbucciare l'uovo.","Tagliare i kiwi a metà.","Consumare insieme."],tip:"Vitamina C del kiwi + ferro dell'uovo = assorbimento ottimale."},
+      {name:"Hummus con pane saraceno",kcal:210,prep:"3 min",tag:"Saziante pre-HIIT",ing:["60 g hummus","½ fetta pane saraceno tostato (18 g)","Pomodorini q.b."],steps:["Tostare il mezzo pane.","Spalmare l'hummus.","Guarnire con pomodorini.","Consumare 90 min prima del HIIT."],tip:"Carbo + proteine + grassi = energia stabile durante il HIIT."},
+    ],
+    ven:[
+      {name:"Camomilla con mandorle",kcal:135,prep:"5 min",tag:"Anti-stress venerdì",ing:["250 ml tisana camomilla","14 mandorle (20 g)","1 cucchiaino miele (opzionale)"],steps:["Preparare la camomilla.","Eventualmente dolcificare.","Abbinare le mandorle.","Allontanarsi dallo schermo 10 min."],tip:"Venerdì pomeriggio = picco di cortisolo settimanale. La camomilla aiuta."},
+      {name:"Arancia e noci",kcal:165,prep:"2 min",tag:"Vitamina C",ing:["1 arancia (180 g)","4 noci (20 g)"],steps:["Sbucciare l'arancia.","Abbinare alle noci.","Consumare."],tip:"La vitamina C supporta il sistema immunitario sotto stress cronico."},
+      {name:"Tisana con semi di finocchio",kcal:140,prep:"5 min",tag:"Digestiva",ing:["250 ml tisana finocchio","14 mandorle (20 g)","Fette di limone"],steps:["Preparare la tisana.","Aggiungere limone.","Abbinare le mandorle."],tip:"Il finocchio riduce il gonfiore da chi mangia legumi regolarmente."},
+    ],
+    sab:[
+      {name:"Frutto e mandorle",kcal:155,prep:"1 min",tag:"Sabato libero",ing:["1 frutto a scelta (150 g)","14 mandorle (20 g)"],steps:["Scegli il frutto preferito.","Abbinare alle mandorle.","Consumare."],tip:"Sabato leggero per lasciare spazio al pranzo della pasta."},
+      {name:"Smoothie leggero pomeridiano",kcal:155,prep:"4 min",tag:"Bevanda",ing:["150 ml latte mandorla","1 frutto a scelta","Ghiaccio","Menta fresca"],steps:["Frullare tutto.","Servire con menta.","Consumare subito."],tip:"Il sabato puoi frullare frutta diversa — kiwi, pesca, anguria — per variare."},
+      {name:"Noci e cioccolato",kcal:155,prep:"1 min",tag:"Classico",ing:["4 noci (20 g)","1 quadratino cioccolato 85% (10 g)"],steps:["Pesare le noci.","Abbinare al cioccolato.","Consumare con calma."],tip:"Non saltare lo spuntino anche il sabato — evita di arrivare a pranzo affamato."},
+    ],
+    dom:[
+      {name:"Tisana con mandorle e cioccolato",kcal:155,prep:"5 min",tag:"Pausa meal prep",ing:["250 ml tisana a scelta","14 mandorle (20 g)","1 quadratino cioccolato 85%"],steps:["Preparare la tisana mentre qualcosa cuoce.","Abbinare mandorle e cioccolato.","Sedersi — non mangiare in piedi."],tip:"Durante il meal prep tendi a spiluccare — questo spuntino lo previene."},
+      {name:"Frutto con semi di zucca",kcal:145,prep:"1 min",tag:"Leggero",ing:["1 frutto di stagione (150 g)","10 g semi di zucca"],steps:["Tagliare il frutto.","Cospargere con semi di zucca.","Consumare."],tip:"Zinco e magnesio dei semi migliorano la qualità del sonno."},
+      {name:"Banana e noci",kcal:175,prep:"1 min",tag:"Energia meal prep",ing:["1 banana (120 g)","4 noci (20 g)"],steps:["Sbucciare la banana.","Abbinare alle noci.","Consumare durante il meal prep."],tip:"Dopo 2 ore di cucina domenicale hai bisogno di carburante — la banana è perfetta."},
+    ],
+  },
+  pra:{
+    lun:[
+      {name:"Salmone alla curcuma su riso venere e spinaci",kcal:580,prep:"25 min",tag:"Anti-infiammatorio · Piatto della settimana",ing:["180 g salmone fresco (crudo)","80 g riso venere (secco)","200 g spinaci freschi","2 cucchiai olio EVO","1 cucchiaino curcuma + pepe nero + zenzero","Succo ½ limone, aglio, sale"],steps:["Cuocere il riso venere 35 min (o dal meal prep).","Preriscaldare il forno a 180°C.","Condire il salmone con curcuma, pepe, zenzero, limone e olio.","Infornare 18-20 min.","Saltare gli spinaci con aglio e olio 3 min.","Impiattare: riso → spinaci → salmone."],tip:"Riso venere: IG basso e antiossidanti antocianici — tra i cereali migliori."},
+      {name:"Risotto di riso integrale con verdure e tonno",kcal:520,prep:"40 min",tag:"Classica",ing:["80 g riso integrale","160 g tonno al naturale","200 g verdure miste","1 scalogno","2 cucchiai olio EVO","Prezzemolo, sale, pepe"],steps:["Tostare il riso con olio e scalogno 2 min.","Aggiungere verdure a cubetti e cuocere 5 min.","Aggiungere brodo a mestoli per 35 min.","A cottura ultimata unire il tonno scolato.","Finire con prezzemolo e pepe."],tip:"Il tonno va aggiunto a fine cottura — si sfalda se cuoce troppo."},
+      {name:"Insalata di riso venere con polpo e verdure",kcal:540,prep:"30 min",tag:"Fresca",ing:["80 g riso venere","200 g polpo lessato","Pomodorini, olive, capperi, prezzemolo","2 cucchiai olio EVO","Succo di limone, sale, pepe"],steps:["Cuocere il riso venere e farlo raffreddare.","Tagliare il polpo a pezzi.","Mescolare riso, polpo, pomodorini, olive, capperi.","Condire con olio, limone, sale e pepe.","Aggiungere prezzemolo fresco abbondante."],tip:"Si prepara la sera prima — ottimo da portare in ufficio."},
+    ],
+    mar:[
+      {name:"Petto di pollo con quinoa e verdure al vapore",kcal:620,prep:"25 min",tag:"HIIT — recupero muscolare",ing:["180 g petto di pollo (crudo)","80 g quinoa (secca)","200 g verdure miste al vapore","2 cucchiai olio EVO","Rosmarino, timo, aglio, sale, pepe","Succo di limone"],steps:["Sciacquare e cuocere la quinoa in 160 ml acqua salata 15 min.","Marinare il pollo con olio, aglio, rosmarino, limone 10 min.","Cuocere il pollo in padella 6-7 min per lato.","Cuocere le verdure al vapore 8-10 min.","Lasciare riposare il pollo 3 min prima di tagliare."],tip:"Giorni HIIT: non sostituire il pollo con tonno — meno aminoacidi essenziali."},
+      {name:"Tonno fresco grigliato con riso basmati",kcal:580,prep:"20 min",tag:"Omega-3 post-HIIT",ing:["180 g tonno fresco (trancio)","80 g riso basmati s.g.","1 finocchio","2 cucchiai olio EVO","Limone, pepe nero, origano","2 arance"],steps:["Cuocere il riso basmati 15 min.","Scaldare la griglia al massimo.","Condire il tonno con olio, limone, pepe.","Grigliare 2-3 min per lato (rimane rosa al centro).","Preparare insalata finocchi e arance."],tip:"Il tonno fresco deve restare rosa al centro — non cuocere troppo."},
+      {name:"Frittata proteica con quinoa e verdure",kcal:560,prep:"20 min",tag:"Senza pesce",ing:["4 albumi + 2 tuorli","80 g quinoa","200 g verdure miste","2 cucchiai olio EVO","Sale, pepe, curcuma, erbe"],steps:["Cuocere la quinoa 15 min.","Sbattere le uova con sale, pepe e curcuma.","Saltare le verdure con olio 5 min.","Aggiungere le uova e cuocere coperto 5 min.","Servire la frittata sopra la quinoa."],tip:"La quinoa ha tutti e 9 gli aminoacidi essenziali — proteina vegetale più completa."},
+    ],
+    mer:[
+      {name:"Zuppa lenticchie rosse con curcuma e riso",kcal:530,prep:"25 min",tag:"Anti-infiammatoria · Comfort",ing:["80 g lenticchie rosse secche","80 g riso integrale","1 scalogno, 1 spicchio aglio","1 cucchiaino curcuma + pepe + zenzero","2 cucchiai olio EVO","500 ml brodo vegetale, sale"],steps:["Cuocere il riso integrale a parte 35 min.","Soffriggere scalogno e aglio 2 min.","Aggiungere le lenticchie e il brodo.","Unire curcuma, zenzero e pepe nero.","Cuocere 15 min finché le lenticchie si disfano.","Servire la zuppa sul riso."],tip:"Lenticchie rosse: no ammollo, cottura 15 min — ideali per la settimana frenetica."},
+      {name:"Polpo con patate novelle e olive",kcal:520,prep:"45 min",tag:"Classica italiana",ing:["200 g polpo lessato","200 g patate novelle","Olive nere, capperi, prezzemolo","2 cucchiai olio EVO","Limone, sale, pepe"],steps:["Se crudo: cuocere il polpo 35 min in acqua bollente salata.","Cuocere le patate a vapore 20 min.","Tagliare polpo e patate a pezzi.","Condire con olio, limone, olive, capperi.","Aggiungere prezzemolo fresco abbondante."],tip:"Il polpo è magro e proteico — proteina ideale per il mercoledì senza HIIT."},
+      {name:"Pasta di riso con ceci e pomodoro",kcal:550,prep:"20 min",tag:"Comfort mediterraneo",ing:["80 g pasta di riso","200 g ceci lessati (barattolo)","200 g pomodori freschi o pelati","Aglio, basilico, olio EVO","Sale, pepe, origano"],steps:["Soffriggere aglio con olio.","Aggiungere pomodori e cuocere 10 min.","Unire i ceci e cuocere 5 min.","Cuocere la pasta di riso al dente.","Mantecare nel sugo con acqua di cottura.","Finire con basilico fresco e pepe."],tip:"Cuocere la pasta 1 min meno del tempo — finisce nel sugo."},
+    ],
+    gio:[
+      {name:"Salmone alla curcuma con quinoa e spinaci",kcal:610,prep:"25 min",tag:"HIIT + Anti-infiammatorio",ing:["160 g salmone fresco","80 g quinoa secca","150 g spinaci freschi","Pomodorini, aglio","Curcuma + pepe nero","2 cucchiai olio EVO, limone, sale"],steps:["Cuocere la quinoa (o dal meal prep).","Marinare il salmone con curcuma, pepe, limone, olio 10 min.","Cuocere in padella 4 min per lato.","Saltare gli spinaci con aglio e olio 3 min.","Aggiungere i pomodorini 1 min.","Impiattare: quinoa → spinaci → salmone."],tip:"Il salmone di giovedì è scongelato dal freezer — scongela sempre in frigo, non a temperatura ambiente."},
+      {name:"Pollo alla griglia con riso venere",kcal:590,prep:"25 min",tag:"Grigliata proteica",ing:["170 g petto di pollo","80 g riso venere","200 g verdure miste grigliate","2 cucchiai olio EVO","Erbe di Provenza, aglio, sale, pepe","Succo di limone"],steps:["Cuocere il riso venere 35 min.","Marinare il pollo con olio, erbe, aglio, limone.","Grigliare il pollo 6-7 min per lato.","Grigliare le verdure a fette spesse.","Lasciare riposare il pollo 3 min.","Impiattare riso, verdure e pollo affettato."],tip:"Non ridurre le porzioni nei giorni HIIT anche senza fame — il muscolo ha bisogno di proteine."},
+      {name:"Quinoa con sgombro e verdure arrostite",kcal:570,prep:"30 min",tag:"Omega-3 abbondanti",ing:["80 g quinoa","180 g sgombro","200 g verdure miste arrostite","Curcuma","2 cucchiai olio EVO","Limone, prezzemolo, sale"],steps:["Cuocere la quinoa 15 min.","Arrostire le verdure al forno 200°C per 20 min.","Cuocere lo sgombro con olio e curcuma, 3-4 min per lato.","Condire la quinoa con curcuma e olio.","Impiattare e aggiungere prezzemolo."],tip:"Lo sgombro ha il doppio degli omega-3 del salmone ed è molto più economico."},
+    ],
+    ven:[
+      {name:"Orata al forno con riso integrale e verdure",kcal:560,prep:"30 min",tag:"Fine settimana sano",ing:["200 g filetto orata","80 g riso integrale","200 g verdure miste","Curcuma + pepe nero","2 cucchiai olio EVO","Limone, aglio, prezzemolo, sale"],steps:["Preriscaldare il forno a 180°C.","Cuocere il riso integrale 35 min.","Arrostire le verdure con olio e curcuma 20 min.","Condire l'orata con olio, aglio, limone, prezzemolo.","Infornare 15-18 min.","Impiattare a strati."],tip:"L'orata è pesce bianco magro — meno omega-3 del salmone ma ottima proteina leggera."},
+      {name:"Insalata di polpo con patate e finocchi",kcal:520,prep:"10 min",tag:"Fresca e leggera",ing:["200 g polpo lessato (dal meal prep)","200 g patate lesse","1 finocchio affettato","Olive, capperi, prezzemolo","2 cucchiai olio EVO, limone, sale"],steps:["Usare il polpo già lessato.","Tagliare le patate a cubetti.","Affettare il finocchio sottile.","Mescolare tutto con olive e capperi.","Condire con olio, limone, sale e prezzemolo."],tip:"Venerdì è il giorno ideale per finire il polpo — dura 3-4 giorni in frigo."},
+      {name:"Risotto di riso integrale con sgombro",kcal:545,prep:"40 min",tag:"Comfort fine settimana",ing:["80 g riso integrale","150 g sgombro al naturale","200 g verdure (zucchine, pomodori)","1 scalogno","2 cucchiai olio EVO","Prezzemolo, sale, pepe"],steps:["Tostare il riso con olio e scalogno.","Aggiungere brodo a mestoli per 35 min.","A 5 min dalla fine aggiungere le verdure.","Unire lo sgombro scolato e sgranato.","Mantecare con olio a crudo e prezzemolo."],tip:"Lo sgombro in barattolo è economico e versatile — alternativa ottima al tonno."},
+    ],
+    sab:[
+      {name:"Pasta di riso con ceci, pomodorini e basilico",kcal:550,prep:"20 min",tag:"IL pasto della settimana",ing:["80 g pasta di riso","200 g ceci lessati","200 g pomodorini ciliegino","Aglio, basilico fresco abbondante","2 cucchiai olio EVO","Sale, pepe, origano"],steps:["Cuocere la pasta di riso al dente.","Soffriggere aglio in olio abbondante.","Aggiungere pomodorini tagliati e cuocere 5 min.","Unire i ceci e cuocere 3 min.","Mantecare la pasta nel sugo.","Spegnere e aggiungere basilico abbondante."],tip:"Questo è il tuo pasto libero della settimana — puoi aggiungere olive o qualcosa in più."},
+      {name:"Pizza di riso con verdure e tonno",kcal:530,prep:"30 min",tag:"Sfizio sano",ing:["150 g farina di riso","1 uovo","50 ml acqua","160 g tonno al naturale","Pomodoro, origano, verdure a scelta","1 cucchiaio olio EVO"],steps:["Mescolare farina, uovo, acqua e olio fino a pasta morbida.","Stendere su carta forno in cerchio sottile.","Cuocere a 200°C per 12 min.","Farcire con pomodoro, tonno e verdure.","Rimettere in forno 5 min."],tip:"La pizza di riso non si gonfia ma soddisfa la voglia — e si digerisce meglio."},
+      {name:"Riso venere con gamberetti e verdure",kcal:560,prep:"20 min",tag:"Elegante",ing:["80 g riso venere","200 g gamberetti sgusciati surgelati","200 g zucchine e pomodorini","Aglio, prezzemolo","2 cucchiai olio EVO","Limone, sale, pepe"],steps:["Cuocere il riso venere 35 min.","Scongelare i gamberetti in acqua fredda.","Soffriggere aglio, aggiungere gamberetti 3-4 min.","Aggiungere zucchine e pomodorini 5 min.","Unire il riso venere e mescolare.","Finire con prezzemolo e limone."],tip:"I gamberetti surgelati sono proteici, magri e senza glutine — tienili nel freezer."},
+    ],
+    dom:[
+      {name:"Salmone al forno con riso venere e finocchi",kcal:580,prep:"30 min",tag:"Pranzo domenicale",ing:["180 g salmone fresco","80 g riso venere","1 finocchio + 1 arancia","200 g spinaci","Curcuma + pepe","2 cucchiai olio EVO, limone, sale"],steps:["Cuocere il riso venere 35 min.","Marinare e cuocere il salmone 18-20 min a 180°C.","Preparare insalata finocchi affettati e arance.","Saltare gli spinaci con aglio.","Impiattare con cura.","Condire con olio a crudo e limone."],tip:"Domenica il piatto si presenta meglio — puoi aggiungere olive o capperi."},
+      {name:"Branzino al cartoccio con patate e rosmarino",kcal:545,prep:"35 min",tag:"Classica domenicale",ing:["250 g branzino intero o filetto","200 g patate a rondelle","Rosmarino, aglio, pomodorini","2 cucchiai olio EVO","Limone, sale, pepe","Carta forno"],steps:["Preriscaldare forno a 180°C.","Stendere la carta forno.","Disporre le rondelle di patate e il pesce.","Condire con olio, rosmarino, limone, sale e pepe.","Chiudere bene il cartoccio.","Cuocere 25-30 min."],tip:"Il cartoccio mantiene tutti i succhi del pesce — gusto intenso, zero perdita di nutrienti."},
+      {name:"Riso integrale con polpo e verdure arrostite",kcal:530,prep:"20 min",tag:"Avanzi creativi",ing:["80 g riso integrale","200 g polpo lessato","200 g verdure arrostite","Olive, capperi, prezzemolo","2 cucchiai olio EVO, limone"],steps:["Cuocere il riso integrale 35 min.","Tagliare il polpo a pezzi.","Mescolare riso, polpo, verdure arrostite.","Aggiungere olive e capperi.","Condire con olio, limone e prezzemolo."],tip:"Usare il polpo del meal prep chiude il ciclo — zero sprechi."},
+    ],
+  },
+  sp2:{
+    lun:[
+      {name:"Tisana allo zenzero con mandorle",kcal:135,prep:"5 min",tag:"Anti-cortisolo",ing:["250 ml acqua calda","Zenzero fresco o bustina","14 mandorle (20 g)","Succo ½ limone"],steps:["Portare l'acqua a 90°C.","Aggiungere lo zenzero fresco o la bustina.","Infondere 5 minuti.","Aggiungere il limone.","Abbinare le mandorle.","Consumare lontano dallo schermo."],tip:"Tisana + 10 min di camminata = combo potente anti-cortisolo."},
+      {name:"Camomilla con noci e cioccolato",kcal:155,prep:"5 min",tag:"Rilassante",ing:["250 ml tisana camomilla","4 noci (20 g)","1 quadratino cioccolato 85% (10 g)"],steps:["Preparare la tisana.","Abbinare noci e cioccolato.","Consumare come momento di stacco."],tip:"La camomilla contiene apigenina — effetto calmante documentato scientificamente."},
+      {name:"Frutto con semi di zucca",kcal:135,prep:"1 min",tag:"Velocissimo",ing:["1 frutto di stagione (150 g)","10 g semi di zucca"],steps:["Tagliare il frutto.","Cospargere con semi di zucca.","Consumare."],tip:"I semi di zucca contengono triptofano — precursore della melatonina, aiutano il sonno."},
+    ],
+    mar:[
+      {name:"Uovo sodo post-HIIT con frutto",kcal:145,prep:"1 min",tag:"Recupero post-allenamento",ing:["1 uovo sodo (dal meal prep)","1 frutto piccolo"],steps:["Sbucciare l'uovo sodo.","Abbinare al frutto.","Consumare entro 30-60 min dalla fine del HIIT."],tip:"Dopo il HIIT il muscolo è anabolico per 30-60 min — l'uovo accelera il recupero."},
+      {name:"Banana con mandorle post-HIIT",kcal:200,prep:"1 min",tag:"Ripristino glicogeno",ing:["1 banana (120 g)","14 mandorle (20 g)"],steps:["Sbucciare la banana.","Abbinare alle mandorle.","Consumare entro 1 ora dal HIIT."],tip:"La banana ripristina il glicogeno muscolare — non saltare nei giorni HIIT."},
+      {name:"Tisana proteica con uovo sodo",kcal:130,prep:"5 min",tag:"Idratazione + recupero",ing:["250 ml tisana zenzero e limone","1 uovo sodo","Pizzico di sale marino"],steps:["Preparare la tisana.","Sbucciare l'uovo.","Aggiungere il pizzico di sale all'uovo.","Consumare insieme."],tip:"Dopo il HIIT si perdono sali — il pizzico di sale marino li integra."},
+    ],
+    mer:[
+      {name:"Tisana zenzero e limone con noci",kcal:140,prep:"5 min",tag:"Digestivo",ing:["250 ml acqua calda","Zenzero fresco","Succo 1 limone","4 noci (20 g)"],steps:["Preparare la tisana.","Aggiungere limone.","Abbinare le noci.","Consumare alle 17:00 in punto."],tip:"Mercoledì pomeriggio = picco stress lavorativo — questa tisana è la tua ancora."},
+      {name:"Mela con burro di mandorle",kcal:185,prep:"2 min",tag:"Saziante",ing:["1 mela media (150 g)","1 cucchiaio burro di mandorle 100% (15 g)","Cannella"],steps:["Tagliare la mela a fettine.","Intingere nel burro di mandorle.","Cospargere di cannella."],tip:"Burro di mandorle: ingredienti = solo mandorle. Senza oli aggiunti né zuccheri."},
+      {name:"Cioccolato e pistacchi con tisana",kcal:170,prep:"5 min",tag:"Antiossidante",ing:["1 quadratino cioccolato 85% (10 g)","15 pistacchi non salati (15 g)","250 ml tisana a scelta"],steps:["Preparare la tisana.","Abbinare cioccolato e pistacchi.","Consumare come pausa obbligatoria."],tip:"I pistacchi contengono melatonina naturale — migliorano la qualità del sonno."},
+    ],
+    gio:[
+      {name:"Uovo sodo e tisana allo zenzero",kcal:130,prep:"5 min",tag:"Post-HIIT leggero",ing:["1 uovo sodo","250 ml tisana zenzero","Succo ½ limone","Pizzico di sale marino"],steps:["Preparare la tisana.","Sbucciare l'uovo.","Consumare entro 1 ora dal HIIT."],tip:"Giovedì è il secondo giorno HIIT — il recupero è fondamentale."},
+      {name:"Banana e mandorle con tisana",kcal:200,prep:"5 min",tag:"Ripristino",ing:["1 banana (120 g)","14 mandorle (20 g)","250 ml tisana a scelta"],steps:["Preparare la tisana.","Abbinare banana e mandorle.","Consumare entro 1 ora dal HIIT."],tip:"Banana + mandorle post-HIIT = carbo rapidi + grassi per il recupero."},
+      {name:"Frutto e noci con acqua aromatizzata",kcal:145,prep:"2 min",tag:"Idratante",ing:["1 frutto (150 g)","4 noci (20 g)","500 ml acqua con limone e menta"],steps:["Preparare l'acqua aromatizzata.","Abbinare frutto e noci.","Reidratarsi bene."],tip:"Dopo 25-30 min di HIIT perdi 500-800 ml di liquidi — reidratati prima dello spuntino."},
+    ],
+    ven:[
+      {name:"Camomilla con mandorle — pausa anti-stress",kcal:135,prep:"5 min",tag:"Fine settimana",ing:["250 ml camomilla","14 mandorle (20 g)","1 cucchiaino miele (opz.)"],steps:["Preparare la tisana.","Dolcificare se desiderato.","Allontanarsi dallo schermo 10 min."],tip:"Venerdì pomeriggio + camomilla + 10 min senza schermo = reset del cortisolo."},
+      {name:"Arancia e noci",kcal:165,prep:"2 min",tag:"Vitamina C",ing:["1 arancia (180 g)","4 noci (20 g)"],steps:["Sbucciare l'arancia.","Abbinare alle noci.","Consumare."],tip:"Fine settimana: la vitamina C potenzia il sistema immunitario sotto stress cronico."},
+      {name:"Tisana drenante con mandorle",kcal:140,prep:"5 min",tag:"Digestiva",ing:["250 ml tisana finocchio","14 mandorle (20 g)","Fette di limone"],steps:["Preparare la tisana.","Aggiungere il limone.","Abbinare le mandorle."],tip:"Il finocchio riduce il gonfiore da legumi — frequente in questa dieta."},
+    ],
+    sab:[
+      {name:"Noci e frutto fresco",kcal:165,prep:"1 min",tag:"Sabato libero",ing:["4 noci (20 g)","1 frutto a scelta (150 g)"],steps:["Scegli il frutto preferito.","Abbinare alle noci.","Consumare."],tip:"Sabato pomeriggio: abbina questo spuntino a una camminata di 20 minuti."},
+      {name:"Smoothie pomeridiano leggero",kcal:155,prep:"4 min",tag:"Rinfrescante",ing:["150 ml latte mandorla","1 frutto a scelta","Ghiaccio","Menta fresca"],steps:["Frullare tutto.","Servire con menta.","Consumare subito."],tip:"Sabato puoi concederti uno smoothie pomeridiano — le calorie sono leggermente più alte."},
+      {name:"Tisana con cioccolato 85%",kcal:135,prep:"5 min",tag:"Relax",ing:["250 ml tisana a scelta","1-2 quadratini cioccolato 85% (15 g)"],steps:["Preparare la tisana.","Abbinare il cioccolato.","Gustare con calma."],tip:"Il sabato pomeriggio è il tuo momento più libero — rituale di benessere."},
+    ],
+    dom:[
+      {name:"Tisana con mandorle e cioccolato",kcal:155,prep:"5 min",tag:"Pausa meal prep",ing:["250 ml tisana a scelta","14 mandorle (20 g)","1 quadratino cioccolato 85%"],steps:["Preparare la tisana.","Abbinare mandorle e cioccolato.","Consumare seduto."],tip:"Durante il meal prep tendi a spiluccare — questo spuntino pianificato lo previene."},
+      {name:"Semi di zucca con frutto",kcal:140,prep:"1 min",tag:"Leggero",ing:["10 g semi di zucca","1 frutto di stagione (150 g)"],steps:["Tagliare il frutto.","Cospargere con semi di zucca.","Consumare."],tip:"Magnesio e zinco dei semi migliorano il sonno — perfetti domenica pomeriggio."},
+      {name:"Banana con noci",kcal:175,prep:"1 min",tag:"Energia finale",ing:["1 banana (120 g)","4 noci (20 g)"],steps:["Sbucciare la banana.","Abbinare alle noci.","Consumare al termine del meal prep."],tip:"Dopo 2 ore di meal prep hai consumato energia — la banana è il carburante finale."},
+    ],
+  },
+  cen:{
+    lun:[
+      {name:"Vellutata di zucca con uova in camicia",kcal:340,prep:"5 min (vellutata pronta)",tag:"Leggera e calda",ing:["300 ml vellutata di zucca (dal meal prep)","2 uova grandi","10 g semi di zucca","1 cucchiaio olio EVO a crudo","Sale, pepe, noce moscata"],steps:["Scaldare la vellutata a fiamma bassa — non bollire.","Portare a ebollizione acqua con un goccio di aceto.","Creare un vortice e rompere le uova una alla volta.","Cuocere in camicia 3 minuti.","Versare la vellutata, adagiare le uova sopra.","Finire con semi di zucca, olio e noce moscata."],tip:"Con il meal prep domenicale questa cena è pronta in meno di 10 minuti totali."},
+      {name:"Insalata mista con tonno e uovo sodo",kcal:310,prep:"5 min",tag:"Zero cottura",ing:["200 g insalata mista","1 scatoletta tonno al naturale (80 g)","1 uovo sodo (dal meal prep)","Olive, pomodorini, cetriolo","1 cucchiaio olio EVO, limone, sale"],steps:["Disporre l'insalata nella ciotola.","Sbriciolate il tonno sopra.","Tagliare l'uovo sodo a spicchi.","Aggiungere olive, pomodorini, cetriolo.","Condire con olio, limone e sale."],tip:"Zero cottura, zero pentole — cena pronta in 5 minuti."},
+      {name:"Zuppa di ceci leggera con pane di riso",kcal:360,prep:"10 min",tag:"Calda e saziante",ing:["200 g ceci lessati (barattolo)","300 ml brodo vegetale","Aglio, rosmarino, olio EVO","1 fetta pane di riso (35 g)","Sale, pepe"],steps:["Soffriggere aglio con olio.","Aggiungere ceci e brodo.","Cuocere 8-10 min a fuoco basso.","Schiacciare metà dei ceci per addensare.","Tostare il pane di riso.","Servire con pane e olio a crudo."],tip:"Schiacciare metà dei ceci addensa senza aggiungere amidacei."},
+    ],
+    mar:[
+      {name:"Branzino al vapore con verdure di stagione",kcal:380,prep:"15 min",tag:"Post-HIIT leggero",ing:["160 g filetto branzino","200 g verdure miste","1 cucchiaio olio EVO a crudo","Limone, prezzemolo, sale, pepe"],steps:["Portare a ebollizione l'acqua per il vapore.","Disporre il branzino nel cestello con fette di limone.","Cuocere al vapore 10-12 min.","Cuocere le verdure al vapore 8 min.","Condire con olio a crudo, limone e prezzemolo."],tip:"Il vapore preserva tutti gli omega-3 — mai frittura o griglia spinta per la cena."},
+      {name:"Frittata di verdure al forno",kcal:340,prep:"20 min",tag:"Proteica senza pesce",ing:["3 uova grandi","150 g verdure miste","1 cucchiaino olio EVO","Sale, pepe, erbe","Curcuma, pepe nero"],steps:["Preriscaldare il forno a 180°C.","Tagliare le verdure a cubetti piccoli.","Sbattere le uova con curcuma, pepe e sale.","Ungere lo stampo e versare le verdure.","Versare le uova e cuocere 15-18 min."],tip:"La frittata al forno non usa grassi in cottura — più leggera della padella."},
+      {name:"Sgombro al vapore con insalata mista",kcal:360,prep:"15 min",tag:"Omega-3 serali",ing:["150 g filetto sgombro","200 g insalata mista","Pomodorini, olive, cetriolo","1 cucchiaio olio EVO a crudo","Limone, sale, pepe"],steps:["Cuocere lo sgombro al vapore 10-12 min.","Preparare l'insalata con pomodorini, olive, cetriolo.","Condire l'insalata con olio, limone, sale.","Servire lo sgombro a lato.","Condire il pesce con limone e pepe."],tip:"Gli omega-3 dello sgombro a cena supportano la riparazione muscolare notturna."},
+    ],
+    mer:[
+      {name:"Insalata finocchi e arance con tonno",kcal:315,prep:"8 min",tag:"Fresca e antiossidante",ing:["1 finocchio medio (200 g)","2 arance medie","1 scatoletta tonno al naturale (80 g)","1 uovo sodo","1 cucchiaio olio EVO, sale, pepe"],steps:["Affettare il finocchio molto sottile.","Sbucciare le arance e tagliare a spicchi.","Sbriciolate il tonno scolato.","Tagliare l'uovo a spicchi.","Mescolare tutto e condire."],tip:"Vitamina C delle arance + tonno = assorbimento del ferro ottimale."},
+      {name:"Minestrone leggero con pane di riso",kcal:330,prep:"20 min",tag:"Calda e confortante",ing:["400 ml brodo vegetale","150 g verdure miste","50 g ceci o fagioli","1 fetta pane di riso","1 cucchiaio olio EVO a crudo","Sale, rosmarino"],steps:["Tagliare le verdure a dadini.","Portare il brodo a bollore.","Aggiungere verdure e legumi.","Cuocere 15-18 min.","Servire con olio a crudo e rosmarino.","Abbinare il pane di riso tostato."],tip:"Il minestrone si conserva 3-4 giorni — preparane una pentola abbondante."},
+      {name:"Uova al pomodoro con verdure saltate",kcal:295,prep:"12 min",tag:"Veloce e saporita",ing:["2 uova grandi","200 g pomodori pelati","100 g spinaci freschi","Aglio, olio EVO","Sale, pepe, origano, basilico"],steps:["Soffriggere aglio con olio.","Aggiungere pomodori e cuocere 8 min.","Creare due spazi e rompere le uova.","Coprire e cuocere 4-5 min.","Saltare gli spinaci a parte.","Servire con gli spinaci al lato."],tip:"Classico della cucina mediterranea — veloce, economico, bilanciato."},
+    ],
+    gio:[
+      {name:"Sgombro al vapore con verdure e limone",kcal:350,prep:"15 min",tag:"Post-HIIT omega-3",ing:["150 g filetto sgombro","200 g verdure miste al vapore","1 cucchiaio olio EVO a crudo","Limone, prezzemolo, capperi","Sale, pepe"],steps:["Cuocere lo sgombro al vapore 10-12 min.","Cuocere le verdure al vapore 8-10 min.","Disporre nel piatto.","Condire con olio, limone, capperi, prezzemolo."],tip:"Il secondo HIIT richiede omega-3 per il recupero — lo sgombro è la fonte più economica."},
+      {name:"Frittata di albumi con verdure e curcuma",kcal:310,prep:"12 min",tag:"Light proteica",ing:["4 albumi + 1 tuorlo","200 g verdure miste","Curcuma + pepe nero","1 cucchiaino olio EVO","Sale, erbe aromatiche"],steps:["Sbattere albumi e tuorlo con curcuma, pepe, sale.","Saltare le verdure con olio 5 min.","Versare le uova sulle verdure.","Coprire a fiamma bassa 6-8 min.","Tagliare a spicchi e servire."],tip:"Dopo il secondo HIIT è normale avere meno appetito — la frittata è leggera ma proteica."},
+      {name:"Vellutata di zucca con branzino al vapore",kcal:370,prep:"15 min",tag:"Completa e leggera",ing:["250 ml vellutata zucca (dal meal prep)","150 g filetto branzino","1 cucchiaio olio EVO a crudo","Semi di zucca, sale, pepe"],steps:["Cuocere il branzino al vapore 10-12 min.","Scaldare la vellutata.","Versare la vellutata nella ciotola fonda.","Adagiare il branzino a pezzi sopra.","Finire con semi di zucca e olio a crudo."],tip:"Vellutata + pesce bianco = cena più digeribile dopo il secondo HIIT."},
+    ],
+    ven:[
+      {name:"Vellutata di zucca e zenzero con uova sode",kcal:330,prep:"5 min",tag:"Fine settimana anti-stress",ing:["300 ml vellutata zucca e zenzero","2 uova sode (dal meal prep)","1 cucchiaio olio EVO a crudo","Semi di zucca, sale, pepe"],steps:["Scaldare la vellutata.","Tagliare le uova sode a spicchi.","Versare la vellutata nella ciotola.","Aggiungere le uova sode.","Finire con semi di zucca e olio."],tip:"Venerdì sera: vellutata + uova sode = 5 minuti dopo una settimana pesante."},
+      {name:"Insalata greca senza feta con tonno",kcal:295,prep:"8 min",tag:"Fresca",ing:["200 g pomodori a cubetti","1 cetriolo a rondelle","Olive nere kalamata","½ cipolla rossa","1 scatoletta tonno al naturale","1 cucchiaio olio EVO, origano, sale"],steps:["Tagliare pomodori, cetriolo e cipolla.","Aggiungere olive e tonno scolato.","Condire con olio, origano, sale.","Mescolare delicatamente."],tip:"La cipolla rossa contiene quercetina — potente flavonoide per la salute cardiovascolare."},
+      {name:"Zuppa di legumi misti con erbe",kcal:355,prep:"10 min",tag:"Calda e fibrosa",ing:["100 g ceci + 100 g fagioli cannellini","300 ml brodo vegetale","Rosmarino, salvia, aglio","1 cucchiaio olio EVO a crudo","Sale, pepe"],steps:["Soffriggere aglio con olio.","Aggiungere i legumi sciacquati.","Versare brodo e erbe.","Cuocere 10 min.","Schiacciare un terzo per addensare.","Servire con olio a crudo."],tip:"I legumi serali nutrono il microbiota intestinale durante la notte."},
+    ],
+    sab:[
+      {name:"Insalata mista con tonno, uovo sodo e olive",kcal:310,prep:"5 min",tag:"Sabato sera leggero",ing:["200 g insalata mista","1 scatoletta tonno al naturale","1 uovo sodo","Olive, pomodorini, cetriolo","1 cucchiaio olio EVO, limone, sale"],steps:["Disporre l'insalata.","Aggiungere tonno, uovo, olive, pomodorini, cetriolo.","Condire con olio, limone, sale.","Consumare subito."],tip:"Dopo il pranzo abbondante della pasta, la cena leggera è essenziale — non cedere."},
+      {name:"Vellutata di zucca con uova e pane di riso",kcal:360,prep:"5 min",tag:"Sabato comfort",ing:["300 ml vellutata zucca","2 uova sode","1 fetta pane di riso tostato","1 cucchiaio olio EVO a crudo","Semi di zucca"],steps:["Scaldare la vellutata.","Tostare il pane di riso.","Tagliare le uova a spicchi.","Servire la vellutata con le uova.","Abbinare il pane tostato.","Finire con semi di zucca e olio."],tip:"Sabato sera è rilassato — puoi aggiungere la fetta di pane che gli altri giorni eviti."},
+      {name:"Branzino al cartoccio con zucchine",kcal:340,prep:"25 min",tag:"Elegante",ing:["160 g filetto branzino","150 g zucchine a rondelle","Pomodorini, aglio, limone","1 cucchiaio olio EVO","Sale, pepe, origano, carta forno"],steps:["Preriscaldare forno a 180°C.","Stendere la carta forno.","Disporre zucchine e branzino.","Condire con olio, limone, origano, sale.","Sigillare il cartoccio.","Cuocere 20-22 min."],tip:"Il cartoccio è elegante ma semplicissimo — perfetto per il sabato sera."},
+    ],
+    dom:[
+      {name:"Minestrone leggero con uova sode",kcal:320,prep:"5 min",tag:"Domenica leggera",ing:["350 ml minestrone leggero","2 uova sode (dal meal prep)","1 fetta pane di riso","1 cucchiaio olio EVO a crudo","Sale, pepe"],steps:["Scaldare il minestrone.","Servire nella ciotola fonda.","Aggiungere le uova sode tagliate.","Abbinare il pane tostato.","Finire con olio a crudo."],tip:"Domenica sera cena leggera — domani inizia la settimana. Un minestrone caldo prepara al riposo."},
+      {name:"Insalata di spinaci con salmone e semi",kcal:340,prep:"5 min",tag:"Omega-3 serali",ing:["200 g spinaci freschi crudi","80 g salmone affumicato","10 g semi di lino macinati","Pomodorini, limone","1 cucchiaio olio EVO, sale"],steps:["Disporre gli spinaci crudi nella ciotola.","Aggiungere il salmone a pezzi.","Aggiungere i pomodorini tagliati.","Condire con olio, limone, sale.","Cospargere con semi di lino macinati."],tip:"Gli spinaci crudi contengono più nutrienti di quelli cotti."},
+      {name:"Frittata al forno con erbe e pomodorini",kcal:295,prep:"18 min",tag:"Classica semplice",ing:["2 uova grandi","100 g pomodorini","Basilico, origano, prezzemolo freschi","1 cucchiaino olio EVO","Sale, pepe, curcuma"],steps:["Preriscaldare forno a 180°C.","Ungere lo stampo.","Sbattere le uova con erbe, sale, pepe e curcuma.","Distribuire i pomodorini.","Versare le uova e infornare 14-16 min."],tip:"Domenica sera frittata semplice — conserva le energie per il riposo."},
+    ],
+  },
+};
+
+const FUORI = [
+  { title:"Ristorante italiano", color:"#993C1D",
+    items:[
+      {label:"Prima scelta",text:"Grigliata di pesce (orata, branzino, tonno) + verdure grigliate o insalata. Olio e limone a parte. Niente pane.",kcal:"~480 kcal"},
+      {label:"Seconda scelta",text:"Carne bianca alla griglia (pollo o tacchino) + contorno di verdure. Al naturale, senza sughi né salse.",kcal:"~450 kcal"},
+      {label:"Terza scelta",text:"Insalata di mare + riso bianco s.g. se disponibile. Solo olio e limone come condimento.",kcal:"~520 kcal"},
+      {label:"Da evitare",text:"Pasta (glutine), pizza, pane, fritto misto, sughi con burro o panna, tutti i dolci standard.",kcal:"—"},
+    ]},
+  { title:"Ristorante giapponese", color:"#1A3A5C",
+    items:[
+      {label:"Sashimi",text:"Pesce crudo senza salsa di soia standard. Chiedi tamari (senza glutine). Aggiungi edamame e miso soup.",kcal:"~380 kcal"},
+      {label:"Da evitare",text:"Onigiri (riso con alga ma spesso con ripieno di soia), tempura (panatura con glutine), salsa di soia standard.",kcal:"—"},
+    ]},
+  { title:"Greco / mediorientale", color:"#3C3489",
+    items:[
+      {label:"Ordina",text:"Kebab di pollo o agnello senza pita. Chiedi insalata invece del pane. Hummus + insalata greca senza feta.",kcal:"~490 kcal"},
+      {label:"Attenzione",text:"Tzatziki: solo se senza lattosio. La pita contiene glutine — sostituisci sempre con insalata o riso.",kcal:"—"},
+    ]},
+  { title:"Messicano", color:"#1E8449",
+    items:[
+      {label:"Bowl consigliata",text:"Riso + pollo grigliato + fagioli neri + guacamole + insalata. Senza tortillas, senza formaggio, senza panna acida.",kcal:"~520 kcal"},
+      {label:"Da evitare",text:"Tortillas (glutine), formaggio, panna acida, burrito standard, quesadillas.",kcal:"—"},
+    ]},
+  { title:"Bar / emergenza", color:"#854F0B",
+    items:[
+      {label:"Opzione migliore",text:"Insalata mista con tonno + acqua naturale. Se non disponibile: uova sode + frutta.",kcal:"~280 kcal"},
+      {label:"Piano B",text:"Frullato di sola frutta (senza latte) + sacchetto di frutta secca certificata senza glutine.",kcal:"~320 kcal"},
+      {label:"Compensazione",text:"Se hai mangiato male: cena ancor più leggera del solito. Solo verdure + 2 uova. Non saltare il pasto.",kcal:"—"},
+    ]},
+  { title:"Box da ufficio (portato da casa)", color:"#0F6E56",
+    items:[
+      {label:"Box A — 10 min mattina",text:"Riso venere + salmone al forno (dal meal prep) + verdure crude. Condire al momento con olio e limone.",kcal:"~520 kcal"},
+      {label:"Box B — 5 min sera prima",text:"Insalata di polpo con patate e olive. Condire la mattina prima di uscire.",kcal:"~490 kcal"},
+      {label:"Box C — Zero prep",text:"Tonno al naturale + quinoa cotta (dal meal prep) + pomodorini + olio EVO in un contenitore ermetico.",kcal:"~480 kcal"},
+      {label:"Regola d'oro",text:"Porta sempre il box — il ristorante è il piano B. Prepara domenica 2-3 box pronti per la settimana.",kcal:"—"},
+    ]},
+  { title:"Regole al ristorante", color:"#555555",
+    items:[
+      {label:"Prima di ordinare",text:"Avvisa dell'intolleranza a glutine e lattosio. Chiedi come sono preparati i piatti. È un diritto, non un capriccio.",kcal:"—"},
+      {label:"Bevande",text:"Sempre acqua naturale. Niente alcolici — una birra aggiunge 200 kcal vuote e alza il cortisolo.",kcal:"—"},
+      {label:"Pane sul tavolo",text:"Chiedilo di non portarlo o spostalo. La tentazione scompare se non è nel campo visivo.",kcal:"—"},
+      {label:"Dolce",text:"Frutta fresca o sorbetto alla frutta (verifica no latte). Caffè: max 1, entro le 13:00.",kcal:"~80 kcal"},
+    ]},
+];
+
+let favs = JSON.parse(localStorage.getItem('favs')||'[]');
+let history = [];
+let currentScreen = 'home';
+let selectedDay = 'lun';
+let selectedMeal = 'col';
+let listFilter = 'all';
+
+function saveFavs(){ localStorage.setItem('favs', JSON.stringify(favs)); }
+function isFav(key){ return favs.includes(key); }
+function toggleFav(key){
+  if(isFav(key)) favs = favs.filter(f=>f!==key);
+  else favs.push(key);
+  saveFavs();
+}
+function recipeKey(meal,day,idx){ return `${meal}_${day}_${idx}`; }
+
+function showScreen(name, pushHistory=true){
+  if(pushHistory && currentScreen !== name) history.push(currentScreen);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navMap={home:'nav-home',list:'nav-list',search:'nav-search',fav:'nav-fav',fuori:'nav-fuori'};
+  if(navMap[name]) document.getElementById(navMap[name]).classList.add('active');
+  currentScreen = name;
+  document.getElementById('btn-back').style.display = history.length ? 'block' : 'none';
+  renderScreen(name);
+}
+
+function goBack(){
+  if(history.length){
+    const prev = history.pop();
+    showScreen(prev, false);
+  }
+}
+
+function renderScreen(name){
+  if(name==='home') renderHome();
+  else if(name==='list') renderList();
+  else if(name==='search') renderSearch();
+  else if(name==='fav') renderFav();
+  else if(name==='fuori') renderFuori();
+}
+
+function renderHome(){
+  const s = document.getElementById('screen-home');
+  const totalRecipes = 35 + 3;
+  s.innerHTML = `
+    <div class="home-header">
+      <h1>Il Mio Ricettario</h1>
+      <p>Dieta Mediterranea · Senza glutine · Senza lattosio</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num">105</div><div class="stat-label">Ricette</div></div>
+      <div class="stat-card"><div class="stat-num">7</div><div class="stat-label">Giorni</div></div>
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">Pasti/giorno</div></div>
+    </div>
+    <div class="section-title">Scegli il pasto</div>
+    <div class="meal-nav-grid">
+      ${MEALS.map(m=>`
+        <button class="meal-nav-btn" style="background:${m.bg};color:${m.color}" onclick="openMeal('${m.id}')">
+          <span style="font-size:22px">${m.icon}</span>
+          <span class="meal-time">${m.time}</span>
+          <span class="meal-name">${m.label}</span>
+          <span class="meal-count">3 ricette × 7 giorni</span>
+        </button>
+      `).join('')}
+      <button class="meal-nav-btn" style="background:#FAECE7;color:#993C1D" onclick="showScreen('fuori')">
+        <span style="font-size:22px">🍴</span>
+        <span class="meal-time">Pranzo</span>
+        <span class="meal-name">Fuori casa</span>
+        <span class="meal-count">7 scenari</span>
+      </button>
+    </div>
+    <div class="section-title">Scegli il giorno</div>
+    <div class="day-chips">
+      ${DAYS.map(d=>`
+        <button class="day-chip ${d.hiit?'hiit':''} ${selectedDay===d.id?'active':''}" onclick="selectDay('${d.id}')">${d.short}</button>
+      `).join('')}
+    </div>
+    <div id="day-preview"></div>
+  `;
+  renderDayPreview();
+}
+
+function renderDayPreview(){
+  const day = DAYS.find(d=>d.id===selectedDay);
+  const el = document.getElementById('day-preview');
+  if(!el) return;
+  let html = '';
+  if(day.hiit) html += `<div class="hiit-banner"><strong>💪 Giorno HIIT</strong> — Allenamento entro le 14:00. Pranzo rinforzato (+150 kcal). Spuntino post-allenamento obbligatorio.</div>`;
+  MEALS.forEach(m=>{
+    const recs = RECIPES[m.id][selectedDay];
+    if(!recs) return;
+    html += `<div class="meal-section-header" style="background:${m.color}">${m.icon} ${m.label} — ${m.time}</div>`;
+    html += '<div class="recipe-list">';
+    recs.forEach((r,i)=>{
+      const key = recipeKey(m.id, selectedDay, i);
+      html += recipeCardHTML(r, m, i, key, selectedDay);
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function selectDay(id){
+  selectedDay = id;
+  document.querySelectorAll('.day-chip').forEach(c=>{
+    const d = DAYS.find(dd=>dd.id===id);
+    c.classList.toggle('active', c.textContent.trim()===d.short.trim() || c.getAttribute('onclick')===`selectDay('${id}')`);
+  });
+  renderDayPreview();
+  document.querySelectorAll('.day-chip').forEach(c=>{
+    if(c.getAttribute('onclick')===`selectDay('${id}')`) c.classList.add('active');
+    else c.classList.remove('active');
+  });
+}
+
+function openMeal(mealId){
+  selectedMeal = mealId;
+  showScreen('list');
+}
+
+function renderList(){
+  const s = document.getElementById('screen-list');
+  const meal = MEALS.find(m=>m.id===selectedMeal) || MEALS[0];
+  document.getElementById('topbar-title').textContent = meal.label;
+  document.getElementById('topbar-sub').textContent = meal.time + ' · 3 alternative per ogni giorno';
+
+  let html = `<div class="filter-tabs">
+    <button class="filter-tab ${listFilter==='all'?'active':''}" style="${listFilter==='all'?`border-color:${meal.color};color:${meal.color}`:''}" onclick="setListFilter('all')">Tutti i giorni</button>
+    ${DAYS.map(d=>`<button class="filter-tab ${listFilter===d.id?'active':''}" style="${listFilter===d.id?`border-color:${meal.color};color:${meal.color}`:''}" onclick="setListFilter('${d.id}')">${d.short}</button>`).join('')}
+  </div>`;
+
+  const daysToShow = listFilter==='all' ? DAYS : DAYS.filter(d=>d.id===listFilter);
+  daysToShow.forEach(day=>{
+    const recs = RECIPES[meal.id][day.id];
+    if(!recs) return;
+    if(day.hiit) html += `<div class="hiit-banner"><strong>💪 ${day.label}</strong> — Giorno HIIT, porzioni rinforzate.</div>`;
+    else html += `<div style="padding:12px 16px 4px;font-size:14px;font-weight:600;color:#333">${day.label}</div>`;
+    html += '<div class="recipe-list">';
+    recs.forEach((r,i)=>{
+      const key = recipeKey(meal.id, day.id, i);
+      html += recipeCardHTML(r, meal, i, key, day.id);
+    });
+    html += '</div>';
+  });
+
+  s.innerHTML = html;
+}
+
+function setListFilter(f){
+  listFilter = f;
+  renderList();
+}
+
+function recipeCardHTML(r, meal, idx, key, dayId){
+  return `
+    <div class="recipe-card" onclick="openRecipe('${meal.id}','${dayId}',${idx})">
+      <div class="recipe-card-header">
+        <div class="recipe-card-icon" style="background:${meal.bg}">
+          <span style="font-size:18px">${meal.icon}</span>
+        </div>
+        <div class="recipe-card-info">
+          <div class="alt-badge" style="background:${meal.bg};color:${meal.color}">${ALT_LABELS[idx]}</div>
+          <div class="recipe-card-name">${r.name}</div>
+          <div class="recipe-card-meta">${r.kcal} kcal · ${r.prep} · ${r.tag}</div>
+        </div>
+        <div class="recipe-card-arrow">›</div>
+      </div>
+    </div>`;
+}
+
+function openRecipe(mealId, dayId, idx){
+  const meal = MEALS.find(m=>m.id===mealId);
+  const recipe = RECIPES[mealId][dayId][idx];
+  const key = recipeKey(mealId, dayId, idx);
+  const s = document.getElementById('screen-detail');
+  const day = DAYS.find(d=>d.id===dayId);
+
+  document.getElementById('topbar-title').textContent = meal.label;
+  document.getElementById('topbar-sub').textContent = day.label + ' · ' + ALT_LABELS[idx];
+
+  s.innerHTML = `
+    <div class="recipe-detail">
+      <div class="recipe-hero" style="background:${meal.color};position:relative">
+        <div class="recipe-hero-name">${recipe.name}</div>
+        <div class="recipe-hero-badges">
+          <span class="recipe-hero-badge">${recipe.kcal} kcal</span>
+          <span class="recipe-hero-badge">${recipe.prep}</span>
+          <span class="recipe-hero-badge">${recipe.tag}</span>
+        </div>
+        <button class="fav-btn" onclick="event.stopPropagation();toggleFavDetail('${key}',this)">${isFav(key)?'❤️':'🤍'}</button>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title" style="color:${meal.color}">Ingredienti</div>
+        <ul class="ing-list">
+          ${recipe.ing.map(i=>`<li class="ing-item"><div class="ing-bullet" style="background:${meal.color}"></div>${i}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title" style="color:${meal.color}">Preparazione</div>
+        <ol class="step-list">
+          ${recipe.steps.map((s,i)=>`<li class="step-item"><div class="step-num" style="background:${meal.color}">${i+1}</div><div class="step-text">${s}</div></li>`).join('')}
+        </ol>
+      </div>
+      ${recipe.tip?`
+      <div class="detail-section" style="padding:0">
+        <div class="tip-box">
+          <div class="tip-label">Consiglio</div>
+          <div class="tip-text">${recipe.tip}</div>
+        </div>
+      </div>`:''}
+    </div>
+  `;
+  showScreen('detail');
+}
+
+function toggleFavDetail(key, btn){
+  toggleFav(key);
+  btn.textContent = isFav(key)?'❤️':'🤍';
+}
+
+function renderSearch(){
+  const s = document.getElementById('screen-search');
+  document.getElementById('topbar-title').textContent = 'Cerca ricette';
+  document.getElementById('topbar-sub').textContent = '105 ricette disponibili';
+  s.innerHTML = `
+    <div class="search-wrap">
+      <input class="search-input" type="search" placeholder="Cerca per nome o ingrediente..." oninput="doSearch(this.value)" id="search-input">
+    </div>
+    <div id="search-results"><div class="no-results">Inizia a digitare per cercare...</div></div>
+  `;
+}
+
+function doSearch(q){
+  const res = document.getElementById('search-results');
+  if(!q||q.length<2){ res.innerHTML='<div class="no-results">Inizia a digitare per cercare...</div>'; return; }
+  q = q.toLowerCase();
+  let found = [];
+  MEALS.forEach(meal=>{
+    DAYS.forEach(day=>{
+      const recs = RECIPES[meal.id][day.id]||[];
+      recs.forEach((r,i)=>{
+        const text = (r.name+' '+(r.ing||[]).join(' ')+' '+r.tag).toLowerCase();
+        if(text.includes(q)) found.push({meal,day,r,i});
+      });
+    });
+  });
+  if(!found.length){ res.innerHTML='<div class="no-results">Nessun risultato per "'+q+'"</div>'; return; }
+  res.innerHTML = '<div class="recipe-list">' +
+    found.map(({meal,day,r,i})=>{
+      const key = recipeKey(meal.id,day.id,i);
+      return `<div class="recipe-card" onclick="openRecipe('${meal.id}','${day.id}',${i})">
+        <div class="recipe-card-header">
+          <div class="recipe-card-icon" style="background:${meal.bg}"><span style="font-size:18px">${meal.icon}</span></div>
+          <div class="recipe-card-info">
+            <div class="alt-badge" style="background:${meal.bg};color:${meal.color}">${meal.label} · ${day.short}</div>
+            <div class="recipe-card-name">${r.name}</div>
+            <div class="recipe-card-meta">${r.kcal} kcal · ${r.prep}</div>
+          </div>
+          <div class="recipe-card-arrow">›</div>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function renderFav(){
+  const s = document.getElementById('screen-fav');
+  document.getElementById('topbar-title').textContent = 'Preferiti';
+  document.getElementById('topbar-sub').textContent = favs.length + ' ricette salvate';
+  if(!favs.length){
+    s.innerHTML = '<div class="fav-empty"><div class="fav-empty-icon">🤍</div><div class="fav-empty-text">Nessun preferito ancora.<br>Apri una ricetta e tocca il cuore.</div></div>';
+    return;
+  }
+  let html = '<div class="recipe-list">';
+  favs.forEach(key=>{
+    const [mealId,dayId,idx] = key.split('_');
+    const meal = MEALS.find(m=>m.id===mealId);
+    const day = DAYS.find(d=>d.id===dayId);
+    const r = RECIPES[mealId]?.[dayId]?.[parseInt(idx)];
+    if(!meal||!day||!r) return;
+    html += `<div class="recipe-card" onclick="openRecipe('${mealId}','${dayId}',${idx})">
+      <div class="recipe-card-header">
+        <div class="recipe-card-icon" style="background:${meal.bg}"><span style="font-size:18px">${meal.icon}</span></div>
+        <div class="recipe-card-info">
+          <div class="alt-badge" style="background:${meal.bg};color:${meal.color}">${meal.label} · ${day.short}</div>
+          <div class="recipe-card-name">${r.name}</div>
+          <div class="recipe-card-meta">${r.kcal} kcal · ${r.prep}</div>
+        </div>
+        <div class="recipe-card-arrow">›</div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  s.innerHTML = html;
+}
+
+function renderFuori(){
+  const s = document.getElementById('screen-fuori');
+  document.getElementById('topbar-title').textContent = 'Pranzo fuori casa';
+  document.getElementById('topbar-sub').textContent = 'Senza glutine · Senza lattosio · Scelte intelligenti';
+  let html = '<div style="height:12px"></div>';
+  FUORI.forEach(block=>{
+    html += `<div class="fuori-card">
+      <div class="fuori-header" style="background:${block.color}">${block.title}</div>
+      ${block.items.map(item=>`
+        <div class="fuori-row">
+          <div>
+            <div class="fuori-label" style="color:${block.color}">${item.label}</div>
+            <div class="fuori-text">${item.text}</div>
+            ${item.kcal!=='—'?`<div class="fuori-kcal">${item.kcal}</div>`:''}
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  });
+  s.innerHTML = html;
+}
+
+// Service Worker registration
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// Init
+showScreen('home', false);
+</script>
+</body>
+</html>
