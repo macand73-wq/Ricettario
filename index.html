@@ -810,9 +810,13 @@ function renderFuori(){
   s.innerHTML = html;
 }
 
-// Service Worker registration
+// Service Worker — pulizia vecchie versioni e registrazione corretta
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/ricettario/sw.js', {scope: '/ricettario/'}).catch(()=>{});
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => { if(!reg.scope.includes('/ricettario/')) reg.unregister(); });
+  });
+  caches.keys().then(keys => { keys.forEach(k => { if(k !== 'ricettario-v3') caches.delete(k); }); });
+  navigator.serviceWorker.register('/ricettario/sw.js', {scope:'/ricettario/'}).catch(()=>{});
 }
 
 // Init
