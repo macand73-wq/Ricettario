@@ -303,7 +303,10 @@ function renderOggi(){
   '</div>'+renderTabbar();
 }
 function goRicette(meal){ state.tab="ricette"; state.ricetteFilter=meal; render(); }
-function goTab(t){ state.tab=t; render(); window.scrollTo(0,0); }
+function goTab(t){
+  if(state.timerInterval && t!=="ricette"){ clearInterval(state.timerInterval); state.timerInterval=null; state.timerRunning=false; state.timerRecipeId=null; }
+  state.tab=t; render(); window.scrollTo(0,0);
+}
 
 /* ---- ALLENAMENTO ---- */
 function renderAllenamento(){
@@ -466,7 +469,10 @@ function saveWeight(){
   weightLog.sort(function(a,b){return a.date<b.date?-1:1;});
   setLS("weight-log",weightLog);
   input.value="";
+  state.weightMsg="Peso salvato ✓ ("+w+" kg)";
   render();
+  if(state.weightMsgTimeout) clearTimeout(state.weightMsgTimeout);
+  state.weightMsgTimeout=setTimeout(function(){ state.weightMsg=null; render(); },2500);
 }
 function resetWeightLog(){
   weightLog=[]; setLS("weight-log",weightLog); render();
@@ -517,6 +523,7 @@ function renderProgressi(){
         '<button class="pill active" style="padding:10px 14px;" onclick="saveWeight()">'+ICONS.plus+'</button>'+
       '</div>'+
       '<div id="weightErr" style="color:var(--red);font-size:12px;margin-top:6px;"></div>'+
+      (state.weightMsg ? '<div style="color:var(--sage);font-size:13px;margin-top:6px;font-weight:600;">'+state.weightMsg+'</div>' : '')+
     '</div>'+
     (weightLog.length>0 ? '<div style="text-align:center;"><span class="label-sm" style="text-decoration:underline;cursor:pointer;" onclick="resetWeightLog()">Azzera storico peso</span></div>' : '')+
   '</div>'+renderTabbar();
