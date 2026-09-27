@@ -810,13 +810,6 @@ function renderFuori(){
   s.innerHTML = html;
 }
 
-// Rimuovi TUTTI i service worker — causano 404 su GitHub Pages con subpath
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
-  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-}
 
 // Init
 showScreen('home', false);
